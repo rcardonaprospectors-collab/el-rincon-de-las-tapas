@@ -1,0 +1,13 @@
+{
+  "name": "rincon-de-las-tapas-reservas",
+  "version": "1.0.0",
+  "description": "Libro de reservas online para El Rincón de las Tapas (sin dependencias externas)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

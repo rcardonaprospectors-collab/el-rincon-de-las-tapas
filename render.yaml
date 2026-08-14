@@ -1,0 +1,28 @@
+# Configuración automática para publicar en Render.
+# Con este archivo, en Render puedes usar "New +" → "Blueprint" y se rellena todo solo.
+#
+# Por defecto usa el plan GRATIS (para probar). Ten en cuenta que en el plan gratis
+# las reservas se borran cuando la app se duerme o se reinicia.
+#
+# 👉 PARA USO REAL (que no se pierdan las reservas):
+#    1) Cambia   plan: free   por   plan: starter
+#    2) Quita el "#" de las 4 líneas del bloque "disk" de más abajo.
+#    Eso añade un disco permanente donde se guardan las reservas para siempre.
+
+services:
+  - type: web
+    name: rincon-tapas-reservas
+    runtime: node
+    plan: free
+    buildCommand: echo "Sin dependencias que instalar"
+    startCommand: node server.js
+    healthCheckPath: /api/config
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false            # Render te pedirá que escribas la contraseña al publicar
+      # - key: DB_PATH         # (necesario solo si activas el disco de abajo)
+      #   value: /var/data/reservas.db
+    # disk:
+    #   name: datos
+    #   mountPath: /var/data
+    #   sizeGB: 1

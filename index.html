@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Rincón de las Tapas — Reserva tu mesa</title>
+<style>
+  :root{
+    --burdeos:#7a1f2b;
+    --burdeos-osc:#5c141d;
+    --dorado:#c9a24b;
+    --crema:#fbf6ec;
+    --crema-2:#f3ead8;
+    --tinta:#2b211c;
+    --gris:#6f655c;
+    --verde:#2f7d5b;
+    --sombra:0 12px 40px rgba(60,20,20,.14);
+    --radio:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--crema);
+    color:var(--tinta);
+    line-height:1.6;
+    min-height:100vh;
+  }
+  h1,h2,h3,.serif{font-family:Georgia,'Times New Roman',serif}
+
+  /* Cabecera */
+  header{
+    background:linear-gradient(150deg,var(--burdeos),var(--burdeos-osc));
+    color:var(--crema);
+    text-align:center;
+    padding:48px 20px 64px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";position:absolute;left:0;right:0;bottom:-1px;height:40px;
+    background:var(--crema);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .marca{
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:13px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--dorado);margin-bottom:14px;
+  }
+  .marca span{height:1px;width:34px;background:var(--dorado);opacity:.7}
+  header h1{font-size:clamp(30px,6vw,50px);font-weight:700;line-height:1.1}
+  header p{max-width:520px;margin:14px auto 0;color:#f2dede;font-size:16px}
+
+  /* Contenido */
+  main{max-width:640px;margin:-34px auto 60px;padding:0 18px;position:relative;z-index:2}
+  .tarjeta{
+    background:#fff;border-radius:var(--radio);box-shadow:var(--sombra);
+    padding:30px 26px;border:1px solid #efe4d0;
+  }
+  .tarjeta h2{font-size:23px;color:var(--burdeos);margin-bottom:4px}
+  .tarjeta .sub{color:var(--gris);font-size:14px;margin-bottom:22px}
+
+  form{display:grid;gap:16px}
+  .fila{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:520px){.fila{grid-template-columns:1fr}}
+  .campo{display:flex;flex-direction:column;gap:6px}
+  label{font-size:13.5px;font-weight:600;color:var(--tinta)}
+  label .opc{font-weight:400;color:var(--gris)}
+  input,select,textarea{
+    font:inherit;padding:12px 13px;border:1.5px solid #e2d6c2;border-radius:11px;
+    background:var(--crema);color:var(--tinta);transition:border-color .15s,box-shadow .15s;
+    width:100%;
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;border-color:var(--burdeos);box-shadow:0 0 0 3px rgba(122,31,43,.12);background:#fff;
+  }
+  textarea{resize:vertical;min-height:78px}
+  .pista{font-size:12px;color:var(--gris)}
+
+  button.enviar{
+    margin-top:6px;background:linear-gradient(135deg,var(--burdeos),var(--burdeos-osc));
+    color:#fff;border:none;padding:15px;border-radius:12px;font-size:16.5px;font-weight:700;
+    cursor:pointer;letter-spacing:.3px;transition:transform .12s,box-shadow .2s;
+    box-shadow:0 8px 20px rgba(122,31,43,.28);
+  }
+  button.enviar:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(122,31,43,.34)}
+  button.enviar:disabled{opacity:.6;cursor:progress;transform:none}
+
+  .aviso{padding:12px 14px;border-radius:11px;font-size:14px;display:none}
+  .aviso.error{display:block;background:#fdeceb;color:#a12b1e;border:1px solid #f4c7c2}
+
+  /* Confirmación */
+  .confirmacion{display:none;text-align:center;padding:8px 4px}
+  .confirmacion.on{display:block;animation:subir .5s ease}
+  @keyframes subir{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .check{
+    width:78px;height:78px;border-radius:50%;margin:0 auto 18px;
+    background:radial-gradient(circle at 30% 30%,#3aa06e,var(--verde));
+    display:grid;place-items:center;box-shadow:0 10px 24px rgba(47,125,91,.35);
+  }
+  .check svg{width:40px;height:40px;stroke:#fff;stroke-width:3.4;fill:none;
+    stroke-dasharray:48;stroke-dashoffset:48;animation:trazo .5s .25s forwards}
+  @keyframes trazo{to{stroke-dashoffset:0}}
+  .confirmacion h2{color:var(--verde);font-size:26px;margin-bottom:6px}
+  .mensaje-bonito{
+    font-family:Georgia,serif;font-size:17px;color:var(--tinta);
+    background:var(--crema-2);border-left:4px solid var(--dorado);
+    padding:16px 18px;border-radius:10px;margin:18px 0;text-align:left;font-style:italic;
+  }
+  .ticket{
+    border:1.5px dashed #d8c7a6;border-radius:14px;padding:18px;text-align:left;
+    background:linear-gradient(180deg,#fff,#fdf9f0);margin:14px 0 18px;
+  }
+  .ticket .cod{
+    font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:var(--burdeos);
+    letter-spacing:2px;
+  }
+  .ticket dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin-top:12px;font-size:14.5px}
+  .ticket dt{color:var(--gris)}
+  .ticket dd{font-weight:600;text-align:right}
+  .btn-otra{
+    background:none;border:1.5px solid var(--burdeos);color:var(--burdeos);
+    padding:12px 22px;border-radius:11px;font-weight:600;cursor:pointer;font-size:15px;
+  }
+  .btn-otra:hover{background:var(--burdeos);color:#fff}
+
+  footer{text-align:center;color:var(--gris);font-size:13px;padding:0 20px 40px}
+  footer a{color:var(--burdeos);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <div class="marca"><span></span>Cocina tradicional española<span></span></div>
+  <h1 id="titulo">El Rincón de las Tapas</h1>
+  <p>Reserva tu mesa en unos segundos. Estamos abiertos todos los días de 11:00 a 23:00.</p>
+</header>
+
+<main>
+  <div class="tarjeta">
+    <!-- FORMULARIO -->
+    <div id="bloque-form">
+      <h2>Reserva tu mesa</h2>
+      <p class="sub">Rellena tus datos y te confirmamos al momento.</p>
+
+      <div id="aviso" class="aviso"></div>
+
+      <form id="form" autocomplete="on">
+        <div class="fila">
+          <div class="campo">
+            <label for="nombre">Nombre y apellidos</label>
+            <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
+          </div>
+          <div class="campo">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" placeholder="600 000 000" required>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="email">Correo electrónico <span class="opc">(opcional)</span></label>
+          <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com">
+        </div>
+
+        <div class="fila">
+          <div class="campo">
+            <label for="fecha">Día</label>
+            <input type="date" id="fecha" name="fecha" required>
+          </div>
+          <div class="campo">
+            <label for="hora">Hora</label>
+            <select id="hora" name="hora" required>
+              <option value="">Elige hora…</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="comensales">Número de comensales</label>
+          <select id="comensales" name="comensales" required></select>
+        </div>
+
+        <div class="campo">
+          <label for="sugerencias">Sugerencias o peticiones <span class="opc">(opcional)</span></label>
+          <textarea id="sugerencias" name="sugerencias" placeholder="Trona para bebé, mesa junto a la ventana, alergias, celebración especial…"></textarea>
+          <span class="pista">Cuéntanos cualquier detalle y haremos lo posible por tenerlo listo.</span>
+        </div>
+
+        <button type="submit" class="enviar" id="btnEnviar">Reservar mesa</button>
+      </form>
+    </div>
+
+    <!-- CONFIRMACIÓN -->
+    <div id="bloque-ok" class="confirmacion">
+      <div class="check">
+        <svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>
+      </div>
+      <h2>¡Reserva recibida!</h2>
+      <div class="mensaje-bonito" id="mensajeBonito"></div>
+      <div class="ticket">
+        <div>Código de reserva: <span class="cod" id="codigo"></span></div>
+        <dl>
+          <dt>A nombre de</dt><dd id="t-nombre"></dd>
+          <dt>Día</dt><dd id="t-fecha"></dd>
+          <dt>Hora</dt><dd id="t-hora"></dd>
+          <dt>Comensales</dt><dd id="t-comensales"></dd>
+        </dl>
+      </div>
+      <button class="btn-otra" onclick="reiniciar()">Hacer otra reserva</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  ¿Prefieres llamarnos o necesitas cambiar tu reserva? <span id="pieContacto"></span>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+let CFG = null;
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+function fechaBonita(iso){
+  const [a,m,d] = iso.split('-').map(Number);
+  const f = new Date(a,m-1,d);
+  return `${DIAS[f.getDay()]}, ${d} de ${MESES[m-1]} de ${a}`;
+}
+
+async function init(){
+  CFG = await (await fetch('/api/config')).json();
+  $('#titulo').textContent = CFG.restaurante;
+  document.title = CFG.restaurante + ' — Reserva tu mesa';
+
+  // Fechas
+  const fecha = $('#fecha');
+  fecha.min = CFG.hoy; fecha.max = CFG.maxFecha; fecha.value = CFG.hoy;
+
+  // Horas
+  const hora = $('#hora');
+  CFG.franjas.forEach(f => hora.insertAdjacentHTML('beforeend', `<option value="${f}">${f}</option>`));
+
+  // Comensales
+  const com = $('#comensales');
+  for (let i=1;i<=CFG.maxComensales;i++){
+    com.insertAdjacentHTML('beforeend', `<option value="${i}">${i} ${i===1?'persona':'personas'}</option>`);
+  }
+  com.value = 2;
+
+  // Pie
+  const pie = $('#pieContacto');
+  if (CFG.telefono) pie.innerHTML = `Llámanos al <a href="tel:${CFG.telefono}">${CFG.telefono}</a>.`;
+  else pie.textContent = 'Contáctanos y te ayudamos encantados.';
+}
+
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const aviso = $('#aviso'); aviso.classList.remove('error'); aviso.style.display='none';
+  const btn = $('#btnEnviar'); btn.disabled = true; btn.textContent = 'Enviando…';
+
+  const datos = {
+    nombre: $('#nombre').value,
+    telefono: $('#telefono').value,
+    email: $('#email').value,
+    fecha: $('#fecha').value,
+    hora: $('#hora').value,
+    comensales: $('#comensales').value,
+    sugerencias: $('#sugerencias').value,
+  };
+
+  try{
+    const r = await fetch('/api/reservas', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(datos)
+    });
+    const res = await r.json();
+    if(!r.ok){ throw new Error(res.error || 'No se ha podido completar la reserva.'); }
+
+    // Mensaje bonito personalizado
+    const nombre = datos.nombre.split(' ')[0];
+    const notif = (CFG.notificaciones) || {};
+    const canales = [];
+    if (notif.email && datos.email) canales.push('tu correo');
+    if (notif.whatsapp) canales.push('WhatsApp');
+    const envio = canales.length
+      ? ` Te hemos enviado la confirmación a ${canales.join(' y ')}.`
+      : '';
+    $('#mensajeBonito').textContent =
+      `¡Gracias, ${nombre}! Tu mesa te está esperando en ${res.restaurante}. ` +
+      `Hemos guardado tu reserva y nuestro equipo la revisará enseguida.` + envio +
+      ` Será un placer recibirte. ¡Buen provecho por adelantado! 🍷`;
+    $('#codigo').textContent = res.codigo;
+    $('#t-nombre').textContent = datos.nombre;
+    $('#t-fecha').textContent = fechaBonita(datos.fecha);
+    $('#t-hora').textContent = datos.hora + ' h';
+    $('#t-comensales').textContent = datos.comensales + (datos.comensales==1?' persona':' personas');
+
+    $('#bloque-form').style.display='none';
+    $('#bloque-ok').classList.add('on');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }catch(err){
+    aviso.textContent = err.message;
+    aviso.classList.add('error');
+    aviso.style.display='block';
+    aviso.scrollIntoView({behavior:'smooth', block:'center'});
+  }finally{
+    btn.disabled=false; btn.textContent='Reservar mesa';
+  }
+});
+
+function reiniciar(){
+  $('#form').reset();
+  $('#fecha').value = CFG.hoy;
+  $('#comensales').value = 2;
+  $('#bloque-ok').classList.remove('on');
+  $('#bloque-form').style.display='block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+init();
+</script>
+</body>
+</html>

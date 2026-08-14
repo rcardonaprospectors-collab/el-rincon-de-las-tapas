@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de reservas — El Rincón de las Tapas</title>
+<style>
+  :root{
+    --burdeos:#7a1f2b;--burdeos-osc:#5c141d;--dorado:#c9a24b;
+    --crema:#fbf6ec;--tinta:#2b211c;--gris:#6f655c;
+    --verde:#2f7d5b;--ambar:#b9791f;--rojo:#b0342a;
+    --linea:#e7dcc8;--radio:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4ecdd;color:var(--tinta)}
+
+  /* Login */
+  .login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px}
+  .login{background:#fff;padding:34px 30px;border-radius:18px;box-shadow:0 14px 44px rgba(60,20,20,.16);max-width:360px;width:100%;text-align:center;border:1px solid var(--linea)}
+  .login .ico{font-size:38px}
+  .login h1{font-family:Georgia,serif;color:var(--burdeos);font-size:22px;margin:10px 0 4px}
+  .login p{color:var(--gris);font-size:14px;margin-bottom:20px}
+  .login input{width:100%;padding:13px;border:1.5px solid var(--linea);border-radius:11px;font-size:15px;background:var(--crema);margin-bottom:12px}
+  .login input:focus{outline:none;border-color:var(--burdeos);background:#fff}
+  .login button{width:100%;padding:13px;background:var(--burdeos);color:#fff;border:none;border-radius:11px;font-size:15.5px;font-weight:700;cursor:pointer}
+  .login button:hover{background:var(--burdeos-osc)}
+  .login .err{color:var(--rojo);font-size:13.5px;min-height:18px;margin-bottom:6px}
+
+  /* Panel */
+  .panel{display:none}
+  .top{background:linear-gradient(135deg,var(--burdeos),var(--burdeos-osc));color:#fff;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .top h1{font-family:Georgia,serif;font-size:21px}
+  .top .sub{color:#f0d9d9;font-size:13px}
+  .top button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);padding:8px 15px;border-radius:9px;cursor:pointer;font-size:13.5px}
+  .top button:hover{background:rgba(255,255,255,.28)}
+
+  .cont{max-width:1080px;margin:0 auto;padding:22px 18px 60px}
+
+  .tarjetas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+  @media(max-width:620px){.tarjetas{grid-template-columns:1fr}}
+  .kpi{background:#fff;border-radius:var(--radio);padding:18px 20px;border:1px solid var(--linea);box-shadow:0 6px 18px rgba(60,20,20,.05)}
+  .kpi .n{font-size:30px;font-weight:800;color:var(--burdeos);font-family:Georgia,serif}
+  .kpi .l{font-size:13px;color:var(--gris);margin-top:2px}
+
+  .filtros{display:flex;gap:12px;align-items:end;flex-wrap:wrap;background:#fff;padding:16px;border-radius:var(--radio);border:1px solid var(--linea);margin-bottom:18px}
+  .filtros .campo{display:flex;flex-direction:column;gap:5px}
+  .filtros label{font-size:12.5px;font-weight:600;color:var(--gris)}
+  .filtros input,.filtros select{padding:9px 11px;border:1.5px solid var(--linea);border-radius:9px;font-size:14px;background:var(--crema)}
+  .filtros .limpiar{background:none;border:1.5px solid var(--linea);color:var(--gris);padding:9px 14px;border-radius:9px;cursor:pointer;font-size:13.5px}
+  .filtros .limpiar:hover{border-color:var(--burdeos);color:var(--burdeos)}
+
+  .lista{display:flex;flex-direction:column;gap:12px}
+  .reserva{background:#fff;border:1px solid var(--linea);border-left:5px solid var(--gris);border-radius:var(--radio);padding:16px 18px;display:grid;grid-template-columns:120px 1fr auto;gap:16px;align-items:center}
+  .reserva.pendiente{border-left-color:var(--ambar)}
+  .reserva.confirmada{border-left-color:var(--verde)}
+  .reserva.cancelada{border-left-color:var(--rojo);opacity:.62}
+  @media(max-width:680px){.reserva{grid-template-columns:1fr;gap:10px}}
+  .cuando{text-align:center}
+  @media(max-width:680px){.cuando{text-align:left;display:flex;gap:10px;align-items:baseline}}
+  .cuando .h{font-size:24px;font-weight:800;color:var(--burdeos);font-family:Georgia,serif;line-height:1}
+  .cuando .d{font-size:12.5px;color:var(--gris);margin-top:3px;text-transform:capitalize}
+  .quien .nom{font-size:16px;font-weight:700}
+  .quien .meta{font-size:13.5px;color:var(--gris);margin-top:2px}
+  .quien .sug{font-size:13.5px;margin-top:7px;background:var(--crema);border-radius:8px;padding:7px 10px;color:#54463c}
+  .quien .cod{font-family:'Courier New',monospace;font-size:12px;color:var(--gris);margin-top:6px}
+  .pers{display:inline-block;background:#f0e6d2;color:#6b4f1e;font-weight:700;font-size:12.5px;padding:3px 9px;border-radius:20px;margin-left:6px}
+
+  .acciones{display:flex;flex-direction:column;gap:7px;min-width:130px}
+  @media(max-width:680px){.acciones{flex-direction:row;flex-wrap:wrap}}
+  .badge{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:4px 10px;border-radius:20px;text-align:center}
+  .badge.pendiente{background:#fbeed3;color:var(--ambar)}
+  .badge.confirmada{background:#d9f0e4;color:var(--verde)}
+  .badge.cancelada{background:#f7dcd9;color:var(--rojo)}
+  .acciones button{border:none;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+  .b-conf{background:var(--verde);color:#fff}
+  .b-canc{background:#f2e2df;color:var(--rojo)}
+  .b-del{background:none;color:var(--gris);text-decoration:underline;font-size:12px;padding:2px}
+  .vacio{text-align:center;color:var(--gris);padding:50px 20px;background:#fff;border-radius:var(--radio);border:1px dashed var(--linea)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login">
+    <div class="ico">🔒</div>
+    <h1>Panel de reservas</h1>
+    <p>El Rincón de las Tapas</p>
+    <div class="err" id="loginErr"></div>
+    <input type="password" id="pass" placeholder="Contraseña" autofocus>
+    <button onclick="login()">Entrar</button>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div class="panel" id="panel">
+  <div class="top">
+    <div>
+      <h1>Libro de reservas 🍽️</h1>
+      <div class="sub">El Rincón de las Tapas</div>
+    </div>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div class="cont">
+    <div class="tarjetas">
+      <div class="kpi"><div class="n" id="kHoy">–</div><div class="l">Reservas para hoy</div></div>
+      <div class="kpi"><div class="n" id="kPers">–</div><div class="l">Comensales hoy</div></div>
+      <div class="kpi"><div class="n" id="kPend">–</div><div class="l">Pendientes de confirmar</div></div>
+    </div>
+
+    <div class="filtros">
+      <div class="campo">
+        <label for="fFecha">Filtrar por día</label>
+        <input type="date" id="fFecha" onchange="cargar()">
+      </div>
+      <div class="campo">
+        <label for="fEstado">Estado</label>
+        <select id="fEstado" onchange="cargar()">
+          <option value="todas">Todas</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="confirmada">Confirmadas</option>
+          <option value="cancelada">Canceladas</option>
+        </select>
+      </div>
+      <button class="limpiar" onclick="limpiar()">Ver todas</button>
+    </div>
+
+    <div class="lista" id="lista"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+
+async function login(){
+  const password = $('#pass').value;
+  const r = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password})});
+  if(r.ok){ mostrarPanel(); }
+  else { $('#loginErr').textContent = 'Contraseña incorrecta.'; $('#pass').value=''; }
+}
+$('#pass').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+
+async function logout(){
+  await fetch('/api/admin/logout',{method:'POST'});
+  location.reload();
+}
+
+function mostrarPanel(){
+  $('#loginWrap').style.display='none';
+  $('#panel').style.display='block';
+  cargar();
+}
+
+function limpiar(){ $('#fFecha').value=''; $('#fEstado').value='todas'; cargar(); }
+
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DIAS=['dom','lun','mar','mié','jue','vie','sáb'];
+function dm(iso){const[a,m,d]=iso.split('-').map(Number);const f=new Date(a,m-1,d);return `${DIAS[f.getDay()]} ${d} ${MESES[m-1]}`;}
+
+async function cargar(){
+  const params = new URLSearchParams();
+  if($('#fFecha').value) params.set('fecha',$('#fFecha').value);
+  if($('#fEstado').value) params.set('estado',$('#fEstado').value);
+  const r = await fetch('/api/admin/reservas?'+params.toString());
+  if(r.status===401){ location.reload(); return; }
+  const {reservas,resumen} = await r.json();
+
+  $('#kHoy').textContent = resumen.hoy.c;
+  $('#kPers').textContent = resumen.hoy.p;
+  $('#kPend').textContent = resumen.pendientes;
+
+  const lista = $('#lista');
+  if(!reservas.length){ lista.innerHTML = '<div class="vacio">No hay reservas que coincidan con el filtro.</div>'; return; }
+
+  lista.innerHTML = reservas.map(r => `
+    <div class="reserva ${r.estado}">
+      <div class="cuando">
+        <div class="h">${r.hora}</div>
+        <div class="d">${dm(r.fecha)}</div>
+      </div>
+      <div class="quien">
+        <div class="nom">${esc(r.nombre)}<span class="pers">${r.comensales} pers.</span></div>
+        <div class="meta">📞 ${esc(r.telefono)}${r.email?' · ✉️ '+esc(r.email):''}</div>
+        ${r.sugerencias?`<div class="sug">📝 ${esc(r.sugerencias)}</div>`:''}
+        <div class="cod">Código ${r.codigo}</div>
+      </div>
+      <div class="acciones">
+        <span class="badge ${r.estado}">${r.estado}</span>
+        ${r.estado!=='confirmada'?`<button class="b-conf" onclick="estado(${r.id},'confirmada')">✓ Confirmar</button>`:''}
+        ${r.estado!=='cancelada'?`<button class="b-canc" onclick="estado(${r.id},'cancelada')">Cancelar</button>`:''}
+        <button class="b-del" onclick="borrar(${r.id})">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+async function estado(id,estado){
+  await fetch(`/api/admin/reservas/${id}/estado`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({estado})});
+  cargar();
+}
+async function borrar(id){
+  await fetch(`/api/admin/reservas/${id}`,{method:'DELETE'});
+  cargar();
+}
+
+// ¿Ya hay sesión activa? Intentar cargar directamente.
+(async ()=>{
+  const r = await fetch('/api/admin/reservas');
+  if(r.ok) mostrarPanel();
+})();
+</script>
+</body>
+</html>
