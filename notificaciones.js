@@ -10,12 +10,15 @@
 const ENV = process.env;
 
 // Endpoints (configurables para poder hacer pruebas con un servidor simulado)
-const RESEND_URL = ENV.RESEND_API_URL || 'https://api.resend.com/emails';
 const TWILIO_BASE = ENV.TWILIO_API_URL || 'https://api.twilio.com';
+const RESEND_URL2 = ENV.RESEND_API_URL || 'https://api.resend.com/emails';
+const BREVO_URL = ENV.BREVO_API_URL || 'https://api.brevo.com/v3/smtp/email';
 
 const cfgEmail = {
-  apiKey: ENV.RESEND_API_KEY || '',
-  from: ENV.EMAIL_FROM || '',              // ej: "El Rincón de las Tapas <reservas@tudominio.com>"
+  brevoKey: ENV.BREVO_API_KEY || '',       // vía Brevo (sin dominio, solo confirmar el correo)
+  resendKey: ENV.RESEND_API_KEY || '',     // vía Resend (con dominio propio)
+  fromEmail: ENV.EMAIL_FROM || '',         // dirección remitente, ej: reservas@tudominio.com o tu Gmail
+  fromName: ENV.EMAIL_FROM_NAME || 'El Rincón de las Tapas', // nombre que verá el cliente
   restaurante: ENV.EMAIL_RESTAURANTE || '',// copia de aviso para el restaurante (opcional)
 };
 const cfgWa = {
@@ -26,7 +29,7 @@ const cfgWa = {
 };
 const PREFIJO_PAIS = ENV.PAIS_PREFIJO || '+34'; // se añade a números locales sin prefijo
 
-function emailActivo() { return Boolean(cfgEmail.apiKey && cfgEmail.from); }
+function emailActivo() { return Boolean((cfgEmail.brevoKey || cfgEmail.resendKey) && cfgEmail.fromEmail); }
 function whatsappActivo() { return Boolean(cfgWa.sid && cfgWa.token && cfgWa.from); }
 
 function estadoNotificaciones() {
@@ -114,10 +117,25 @@ function htmlCliente(r, nombreRest) {
 // Envíos
 // ------------------------------------------------------------------
 async function enviarEmail(to, subject, html, text) {
-  const res = await fetch(RESEND_URL, {
+  // Brevo (recomendado sin dominio): solo necesita confirmar el remitente
+  if (cfgEmail.brevoKey) {
+    const res = await fetch(BREVO_URL, {
+      method: 'POST',
+      headers: { 'api-key': cfgEmail.brevoKey, 'Content-Type': 'application/json', 'accept': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: cfgEmail.fromName, email: cfgEmail.fromEmail },
+        to: [{ email: to }],
+        subject, htmlContent: html, textContent: text,
+      }),
+    });
+    if (!res.ok) throw new Error(`Brevo ${res.status}: ${await res.text().catch(() => '')}`);
+    return true;
+  }
+  // Resend (con dominio propio verificado)
+  const res = await fetch(RESEND_URL2, {
     method: 'POST',
-    headers: { 'Authorization': `Bearer ${cfgEmail.apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: cfgEmail.from, to: [to], subject, html, text }),
+    headers: { 'Authorization': `Bearer ${cfgEmail.resendKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: `${cfgEmail.fromName} <${cfgEmail.fromEmail}>`, to: [to], subject, html, text }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text().catch(() => '')}`);
   return true;

@@ -75,6 +75,11 @@
   .b-conf{background:var(--verde);color:#fff}
   .b-canc{background:#f2e2df;color:var(--rojo)}
   .b-del{background:none;color:var(--gris);text-decoration:underline;font-size:12px;padding:2px}
+  .avisar{border-top:1px dashed var(--linea);margin-top:2px;padding-top:7px;display:flex;flex-direction:column;gap:6px}
+  .avisar .tit{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris);font-weight:700;text-align:center}
+  .acciones a{text-decoration:none;text-align:center;padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;display:block}
+  .b-wa{background:#25d366;color:#fff}
+  .b-mail{background:#e9edf4;color:#31506b}
   .vacio{text-align:center;color:var(--gris);padding:50px 20px;background:#fff;border-radius:var(--radio);border:1px dashed var(--linea)}
 </style>
 </head>
@@ -158,6 +163,29 @@ const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','
 const DIAS=['dom','lun','mar','mié','jue','vie','sáb'];
 function dm(iso){const[a,m,d]=iso.split('-').map(Number);const f=new Date(a,m-1,d);return `${DIAS[f.getDay()]} ${d} ${MESES[m-1]}`;}
 
+// ---- Avisar al cliente por WhatsApp / correo (sin cuentas ni claves) ----
+const REST='El Rincón de las Tapas';
+const MESESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fechaLarga(iso){const[a,m,d]=iso.split('-').map(Number);return `${d} de ${MESESL[m-1]} de ${a}`;}
+function telWa(tel){
+  let t=String(tel||'').replace(/[^\d+]/g,'');
+  if(t.startsWith('+')) return t.slice(1);
+  if(t.startsWith('00')) return t.slice(2);
+  return '34'+t; // por defecto, prefijo de España
+}
+function mensajeCliente(r){
+  const nombre=(r.nombre||'').split(' ')[0];
+  if(r.estado==='cancelada'){
+    return `Hola ${nombre}, le escribimos de ${REST}. Lamentamos informarle de que su reserva del ${fechaLarga(r.fecha)} a las ${r.hora} para ${r.comensales} personas (código ${r.codigo}) ha tenido que ser cancelada. Sentimos mucho las molestias y estaremos encantados de ayudarle a buscar otra fecha. Un cordial saludo.`;
+  }
+  return `Hola ${nombre}, le confirmamos su reserva en ${REST} para el ${fechaLarga(r.fecha)} a las ${r.hora}, ${r.comensales} personas (código ${r.codigo}). ¡Le esperamos! Un cordial saludo.`;
+}
+function waHref(r){return `https://wa.me/${telWa(r.telefono)}?text=${encodeURIComponent(mensajeCliente(r))}`;}
+function mailHref(r){
+  const asunto=r.estado==='cancelada'?`Cancelación de tu reserva — ${REST}`:`Tu reserva en ${REST}`;
+  return `mailto:${encodeURIComponent(r.email)}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(mensajeCliente(r))}`;
+}
+
 async function cargar(){
   const params = new URLSearchParams();
   if($('#fFecha').value) params.set('fecha',$('#fFecha').value);
@@ -190,6 +218,11 @@ async function cargar(){
         ${r.estado!=='confirmada'?`<button class="b-conf" onclick="estado(${r.id},'confirmada')">✓ Confirmar</button>`:''}
         ${r.estado!=='cancelada'?`<button class="b-canc" onclick="estado(${r.id},'cancelada')">Cancelar</button>`:''}
         <button class="b-del" onclick="borrar(${r.id})">Eliminar</button>
+        <div class="avisar">
+          <span class="tit">${r.estado==='cancelada'?'Avisar de la cancelación':'Avisar al cliente'}</span>
+          <a class="b-wa" href="${waHref(r)}" target="_blank" rel="noopener">💬 WhatsApp</a>
+          ${r.email?`<a class="b-mail" href="${mailHref(r)}">✉️ Correo</a>`:''}
+        </div>
       </div>
     </div>`).join('');
 }
